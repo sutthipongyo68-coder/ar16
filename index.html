@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>นักแก้ปัญหาตัวจิ๋ว - วิทยาการคำนวณ ป.3</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Thai Google Font (Mali & Kanit for Kid-Friendly Aesthetic) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;700;800&family=Mali:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Mali', 'Kanit', sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 50%, #fef3c7 100%);
+            min-height: 100vh;
+        }
+
+        .btn-bounce {
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s;
+        }
+
+        .btn-bounce:hover {
+            transform: translateY(-3px) scale(1.02);
+        }
+
+        .btn-bounce:active {
+            transform: translateY(2px) scale(0.98);
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(12px);
+            border: 4px solid #38bdf8;
+        }
+
+        /* Confetti overlay */
+        #confettiCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 99;
+        }
+
+        /* Custom Drag & Drop styling */
+        .step-slot {
+            transition: all 0.2s ease;
+        }
+
+        .step-item {
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+    </style>
+</head>
+<body class="flex flex-col justify-between items-center min-h-screen p-3 sm:p-6 text-slate-800">
+
+    <canvas id="confettiCanvas"></canvas>
+
+    <!-- Header Navigation & Status -->
+    <header id="mainHeader" class="w-full max-w-3xl flex justify-between items-center bg-white/90 backdrop-blur-md p-3.5 sm:p-4 rounded-3xl shadow-lg border-4 border-amber-300 mb-4 hidden">
+        <div class="flex items-center gap-3">
+            <span class="text-3xl sm:text-4xl animate-bounce">🎒</span>
+            <div>
+                <h1 class="text-lg sm:text-xl font-bold text-amber-600 flex items-center gap-2">
+                    นักแก้ปัญหาตัวจิ๋ว <span class="text-xs bg-amber-400 text-slate-900 px-2.5 py-0.5 rounded-full font-bold">ป.3</span>
+                </h1>
+                <p id="stageTitle" class="text-xs text-slate-500 font-bold">ด่านที่ 1/5: จัดกระเป๋าไปโรงเรียน</p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <div class="bg-amber-50 px-3 py-1.5 rounded-2xl border-2 border-amber-200 text-center">
+                <span class="text-[10px] text-slate-500 font-bold block">คะแนนสะสม</span>
+                <span id="scoreDisplay" class="text-base sm:text-lg font-extrabold text-amber-600">0</span>
+            </div>
+            <button onclick="showHowToPlayModal()" class="bg-sky-100 hover:bg-sky-200 text-sky-700 font-bold p-2.5 rounded-2xl border-2 border-sky-300 text-xs sm:text-sm flex items-center gap-1">
+                ❓ วิธีเล่น
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="w-full max-w-3xl flex-1 flex flex-col justify-center items-center my-auto">
+
+        <!-- SCREEN 1: START MENU -->
+        <div id="startScreen" class="w-full text-center glass-card p-6 sm:p-10 rounded-3xl shadow-2xl border-4 border-amber-400 my-auto">
+            <div class="text-7xl sm:text-8xl mb-3 animate-bounce">🤖✨</div>
+            <h1 class="text-3xl sm:text-4xl font-extrabold text-amber-600 mb-2">นักแก้ปัญหาตัวจิ๋ว</h1>
+            <p class="text-slate-600 font-bold text-sm sm:text-base mb-6">
+                ตะลุยโลกวิชาการคำนวณ ป.3 ฝึกคิดอย่างเป็นขั้นตอน ตอบปัญหา และแก้ไขข้อผิดพลาด!
+            </p>
+
+            <div class="bg-sky-50 border-2 border-sky-200 rounded-2xl p-4 mb-6 text-left max-w-md mx-auto space-y-2 text-xs sm:text-sm text-slate-700">
+                <div class="flex items-center gap-2 font-bold text-sky-800">
+                    <span>🎯</span> <span>สิ่งที่จะได้เรียนรู้:</span>
+                </div>
+                <ul class="list-disc list-inside space-y-1 font-semibold pl-2">
+                    <li>ฝึกเรียงลำดับขั้นตอนการแก้ปัญหา (Algorithm)</li>
+                    <li>เลือกวิธีแก้ปัญหาที่เหมาะสมกับสถานการณ์</li>
+                    <li>ตรวจสอบและแก้ไขข้อผิดพลาด (Debugging)</li>
+                </ul>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-3 justify-center max-w-xs mx-auto">
+                <button onclick="startGame()" class="btn-bounce bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-lg py-3 px-8 rounded-2xl shadow-lg border-b-4 border-emerald-700 w-full flex items-center justify-center gap-2">
+                    🚀 เริ่มผจญภัย
+                </button>
+            </div>
+        </div>
+
+        <!-- SCREEN 2: GAMEPLAY CONTAINER -->
+        <div id="gameplayScreen" class="w-full glass-card p-5 sm:p-8 rounded-3xl shadow-2xl border-4 border-sky-400 hidden">
+            
+            <!-- Progress Bar -->
+            <div class="w-full bg-slate-200 h-3.5 rounded-full overflow-hidden mb-5 border border-slate-300">
+                <div id="progressBar" class="bg-gradient-to-r from-amber-400 to-emerald-400 h-full w-1/5 transition-all duration-500"></div>
+            </div>
+
+            <!-- Problem Scenario Box -->
+            <div class="bg-sky-50 border-2 border-sky-200 rounded-2xl p-4 sm:p-5 mb-5">
+                <div class="flex items-start gap-3">
+                    <span id="mascotIcon" class="text-4xl sm:text-5xl">🧒</span>
+                    <div>
+                        <span id="questionTag" class="bg-sky-500 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full">ด่านที่ 1: ขั้นตอนการแก้ปัญหา</span>
+                        <h2 id="scenarioTitle" class="text-lg sm:text-xl font-bold text-sky-900 mt-1">น้องต้นต้องเตรียมกระเป๋าไปโรงเรียน</h2>
+                        <p id="scenarioDesc" class="text-xs sm:text-sm text-slate-600 font-semibold mt-1">
+                            การเตรียมกระเป๋าเรียนอย่างมีระเบียบ ต้องทำขั้นตอนใดเป็นอันดับแรกสุด?
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Question Interactive Area -->
+            <div id="interactiveArea" class="space-y-3 mb-5">
+                <!-- Dynamic Content injected by JS (Multiple choice or Sequence ordering) -->
+            </div>
+
+            <!-- Action Controls -->
+            <div class="flex justify-between items-center pt-2">
+                <button id="hintBtn" onclick="showHint()" class="btn-bounce bg-amber-100 hover:bg-amber-200 text-amber-800 font-bold py-2 px-4 rounded-xl border-2 border-amber-300 text-xs sm:text-sm flex items-center gap-1">
+                    💡 ขอคำใบ้
+                </button>
+                <button id="submitBtn" onclick="checkAnswer()" class="btn-bounce bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold py-2.5 px-6 rounded-2xl border-b-4 border-emerald-700 text-sm sm:text-base">
+                    ตรวจคำตอบ ✨
+                </button>
+            </div>
+        </div>
+
+        <!-- SCREEN 3: SUMMARY & VICTORY -->
+        <div id="victoryScreen" class="w-full text-center glass-card p-6 sm:p-10 rounded-3xl shadow-2xl border-4 border-emerald-400 my-auto hidden">
+            <div class="text-6xl sm:text-7xl mb-2 animate-bounce">🏆</div>
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-emerald-600 mb-1">ยินดีด้วย! คุณคือยอดนักแก้ปัญหา</h2>
+            <p class="text-slate-600 font-bold text-xs sm:text-sm mb-4">เรียนรู้และผ่านด่านวิชาวิทยาการคำนวณครบถ้วนแล้ว!</p>
+
+            <div id="finalStars" class="text-4xl sm:text-5xl mb-4">⭐⭐⭐</div>
+
+            <div class="bg-emerald-50 border-2 border-emerald-200 rounded-2xl p-4 mb-6 max-w-sm mx-auto text-left space-y-2">
+                <div class="flex justify-between items-center text-slate-700 font-semibold text-sm">
+                    <span>คะแนนรวมทั้งหมด:</span>
+                    <span id="finalScore" class="font-bold text-amber-600 text-lg">0 คะแนน</span>
+                </div>
+                <div class="flex justify-between items-center text-slate-700 font-semibold text-sm">
+                    <span>เหรียญรางวัลนักแก้ปัญหา:</span>
+                    <span class="font-bold text-emerald-600">ระดับเหรียญทอง 🥇</span>
+                </div>
+            </div>
+
+            <button onclick="startGame()" class="btn-bounce bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-base sm:text-lg py-3 px-8 rounded-2xl shadow-lg border-b-4 border-emerald-700">
+                🔄 เล่นใหม่อีกครั้ง
+            </button>
+        </div>
+
+    </main>
+
+    <!-- Feedback Modal (Explanation after answering) -->
+    <div id="feedbackModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white rounded-3xl p-6 max-w-md w-full text-center shadow-2xl border-4 border-sky-400">
+            <div id="feedbackIcon" class="text-6xl mb-2">🎉</div>
+            <h3 id="feedbackTitle" class="text-xl font-extrabold text-sky-600 mb-2">ถูกต้องแล้วครับ!</h3>
+            <p id="feedbackText" class="text-xs sm:text-sm text-slate-600 font-semibold mb-5 bg-sky-50 p-3 rounded-xl border border-sky-200">
+                คำอธิบายเพิ่มเติมเกี่ยวกับขั้นตอนการแก้ปัญหา
+            </p>
+            <button id="nextStageBtn" onclick="nextStage()" class="btn-bounce w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2.5 rounded-2xl border-b-4 border-emerald-700 text-sm">
+                ไปด่านถัดไป ➡️
+            </button>
+        </div>
+    </div>
+
+    <!-- How to Play Modal -->
+    <div id="howToPlayModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white rounded-3xl p-6 max-w-md w-full text-left shadow-2xl border-4 border-amber-400">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="text-lg font-bold text-amber-600 flex items-center gap-2">❓ วิธีการเล่นเกม</h3>
+                <button onclick="closeHowToPlayModal()" class="text-slate-400 hover:text-slate-600 font-bold text-xl">✕</button>
+            </div>
+            <div class="space-y-2 text-xs sm:text-sm text-slate-700 font-semibold mb-4">
+                <p>1. อ่านสถานการณ์ปัญหาให้เข้าใจ</p>
+                <p>2. คิดวิเคราะห์เรียงลำดับขั้นตอนหรือเลือกคำตอบที่ถูกต้องที่สุด</p>
+                <p>3. หากไม่แน่ใจ สามารถกดปุ่ม 💡 <b>ขอคำใบ้</b> เพื่อช่วยคิดได้</p>
+                <p>4. อ่านคำอธิบายความรู้หลังตอบทุกครั้งเพื่อเรียนรู้เพิ่มขึ้น!</p>
+            </div>
+            <button onclick="closeHowToPlayModal()" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 rounded-xl">
+                เข้าใจแล้ว!
+            </button>
+        </div>
+    </div>
+
+    <!-- Sound Synthesizer & Game Logic -->
+    <script>
+        // 🔊 Sound Synthesizer via Web Audio API
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(type) {
+            try {
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                const now = audioCtx.currentTime;
+
+                if (type === 'click') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(450, now);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+                    osc.start(now);
+                    osc.stop(now + 0.05);
+                } else if (type === 'correct') {
+                    const notes = [523.25, 659.25, 783.99]; // C5, E5, G5
+                    notes.forEach((freq, i) => {
+                        const o = audioCtx.createOscillator();
+                        const g = audioCtx.createGain();
+                        o.connect(g);
+                        g.connect(audioCtx.destination);
+                        o.type = 'triangle';
+                        o.frequency.setValueAtTime(freq, now + (i * 0.08));
+                        g.gain.setValueAtTime(0.12, now + (i * 0.08));
+                        g.gain.exponentialRampToValueAtTime(0.001, now + (i * 0.08) + 0.2);
+                        o.start(now + (i * 0.08));
+                        o.stop(now + (i * 0.08) + 0.2);
+                    });
+                } else if (type === 'wrong') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(220, now);
+                    osc.frequency.setValueAtTime(160, now + 0.1);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+                    osc.start(now);
+                    osc.stop(now + 0.25);
+                } else if (type === 'victory') {
+                    const winNotes = [523.25, 659.25, 783.99, 1046.50];
+                    winNotes.forEach((freq, i) => {
+                        const o = audioCtx.createOscillator();
+                        const g = audioCtx.createGain();
+                        o.connect(g);
+                        g.connect(audioCtx.destination);
+                        o.type = 'sine';
+                        o.frequency.setValueAtTime(freq, now + (i * 0.12));
+                        g.gain.setValueAtTime(0.15, now + (i * 0.12));
+                        g.gain.exponentialRampToValueAtTime(0.001, now + (i * 0.12) + 0.3);
+                        o.start(now + (i * 0.12));
+                        o.stop(now + (i * 0.12) + 0.3);
+                    });
+                }
+            } catch (e) {}
+        }
+
+        // 🎯 Game Levels Data
+        const GAME_STAGES = [
+            {
+                id: 1,
+                tag: "ด่านที่ 1: ขั้นตอนการแก้ปัญหา",
+                mascot: "🎒",
+                title: "น้องต้นต้องเตรียมกระเป๋าไปโรงเรียน",
+                desc: "น้องต้นกำลังจัดกระเป๋านักเรียนเพื่อไปโรงเรียนในวันพรุ่งนี้ ขั้นตอนใดเป็นขั้นตอนแรกที่คุณครูแนะนำให้ทำก่อนครับ?",
+                type: "choice",
+                hint: "ลองคิดดูสิครับ ถ้าเราไม่รู้ว่าพรุ่งนี้เรียนวิชาอะไร เราจะหยิบหนังสือถูกเล่มไหมนะ?",
+                options: [
+                    { text: "ก. ใส่สมุดและหนังสือลงกระเป๋า", correct: false },
+                    { text: "ข. ตรวจตารางเรียนประจำวัน", correct: true },
+                    { text: "ค. รูดซิปปิดกระเป๋าให้เรียบร้อย", correct: false },
+                    { text: "ง. สะพายกระเป๋าเตรียมออกจากบ้าน", correct: false }
+                ],
+                explanation: "ถูกต้องแล้วครับ! การตรวจดูตารางเรียนเป็นขั้นตอนแรกของการแก้ปัญหา เพื่อให้เราจัดหนังสือได้ถูกต้อง ไม่หนักเกินไปและไม่ลืมอุปกรณ์ครับ"
+            },
+            {
+                id: 2,
+                tag: "ด่านที่ 2: เลือกวิธีแก้ปัญหาที่เหมาะสม",
+                mascot: "🍞",
+                title: "คุณแม่อบขนมปังมื้อเช้า",
+                desc: "คุณแม่ต้องการอบขนมปังกรอบให้เสร็จทันเวลา 7.00 น. แต่วิธีปิ้งบนกระทะใช้เวลานานเกินไป ควรเลือกใช้วิธีใดเหมาะสมที่สุด?",
+                type: "choice",
+                hint: "อุปกรณ์ไฟฟ้าชิ้นไหนในครัวที่ออกแบบมาเพื่อปิ้งขนมปังได้เร็วที่สุด?",
+                options: [
+                    { text: "ก. ใช้ตู้เย็นช่องแช่แข็ง", correct: false },
+                    { text: "ข. ใช้เครื่องปิ้งขนมปังไฟฟ้า", correct: true },
+                    { text: "ค. ตั้งเตาย่างถ่านกลางแจ้ง", correct: false },
+                    { text: "ง. นำขนมปังไปตากแดด", correct: false }
+                ],
+                explanation: "เก่งมากครับ! การเลือกเครื่องมือที่เหมาะสม (เครื่องปิ้งขนมปัง) ช่วยลดเวลาและแก้ปัญหาได้อย่างมีประสิทธิภาพครับ"
+            },
+            {
+                id: 3,
+                tag: "ด่านที่ 3: เรียงลำดับขั้นตอน (Algorithm)",
+                mascot: "📚",
+                title: "วางแผนเดินทางไปห้องสมุดโรงเรียน",
+                desc: "ช่วยน้องเมย์เรียงลำดับขั้นตอนการยืมหนังสือที่ห้องสมุดให้ถูกต้องตามลำดับ (คลิกที่ข้อความเพื่อสลับลำดับ):",
+                type: "sequence",
+                hint: "จำง่ายๆ: หาหนังสือ -> ให้บรรณารักษ์บันทึก -> รับหนังสือกลับบ้าน",
+                correctOrder: [
+                    "1. ค้นหาหนังสือที่ต้องการบนชั้นวาง",
+                    "2. นำหนังสือไปให้บรรณารักษ์ที่เคาน์เตอร์",
+                    "3. สแกนบัตรนักเรียนเพื่อยืมหนังสือ",
+                    "4. รับหนังสือและตรวจสอบวันส่งคืน"
+                ],
+                initialOrder: [
+                    "3. สแกนบัตรนักเรียนเพื่อยืมหนังสือ",
+                    "1. ค้นหาหนังสือที่ต้องการบนชั้นวาง",
+                    "4. รับหนังสือและตรวจสอบวันส่งคืน",
+                    "2. นำหนังสือไปให้บรรณารักษ์ที่เคาน์เตอร์"
+                ],
+                explanation: "ยอดเยี่ยมมากครับ! การเรียงลำดับขั้นตอน (Algorithm) ที่ถูกต้อง จะช่วยให้ทำงานสำเร็จโดยไม่สับสนและไม่เกิดข้อผิดพลาด"
+            },
+            {
+                id: 4,
+                tag: "ด่านที่ 4: ตรวจหาและแก้ไขข้อผิดพลาด (Debug)",
+                mascot: "🧹",
+                title: "จัดโต๊ะเรียนให้สะอาดเรียบร้อย",
+                desc: "น้องโป้งจัดโต๊ะเรียนเสร็จแล้ว แต่มองไปเห็น 'กล่องดินสอวางเปิดฝาอยู่บนพื้น' ข้อผิดพลาด (Bug) ในการจัดโต๊ะนี้คืออะไรและควรแก้ไขอย่างไร?",
+                type: "choice",
+                hint: "อุปกรณ์ควรวางอยู่ตรงไหนเพื่อความปลอดภัยและไม่หล่นหาย?",
+                options: [
+                    { text: "ก. ปล่อยไว้อย่างนั้น เพราะเดี๋ยวก็ต้องใช้อีก", correct: false },
+                    { text: "ข. ปิดฝากล่องดินสอ แล้วนำขึ้นมาวางบนโต๊ะให้เรียบร้อย", correct: true },
+                    { text: "ค. นำหนังสือมาวางทับกล่องดินสอไว้บนพื้น", correct: false },
+                    { text: "ง. กวาดกล่องดินสอไปไว้ใต้ตู้", correct: false }
+                ],
+                explanation: "ถูกต้องครับ! การตรวจสอบผลลัพธ์ทำให้เราเจอ Bug (ข้อผิดพลาด) และเมื่อเรารีบแก้ไข จะทำให้โต๊ะเรียนเรียบร้อยและปลอดภัยครับ"
+            },
+            {
+                id: 5,
+                tag: "ด่านที่ 5: วางแผนแก้ปัญหาซับซ้อน",
+                mascot: "🏫",
+                title: "ภารกิจวันเปิดเทอมวันแรก",
+                desc: "ในวันเปิดเทอม น้องก้อยมีภารกิจ: ซื้อสมุดใหม่, ส่งการบ้านครู, และเข้าแถวเคารพธงชาติเวลา 08:00 น. ควรวางแผนอย่างไรดีที่สุด?",
+                type: "choice",
+                hint: "สิ่งที่สำคัญที่สุดที่มีกำหนดเวลาชัดเจนคืออะไร?",
+                options: [
+                    { text: "ก. ซื้อสมุดก่อน แล้วไปเข้าแถวเคารพธงชาติให้ทัน จากนั้นค่อยส่งการบ้านช่วงพัก", correct: true },
+                    { text: "ข. ไปนั่งเล่นที่สนามเด็กเล่นก่อน แล้วค่อยทำทุกอย่างทีหลัง", correct: false },
+                    { text: "ค. ยืนรอครูหน้าห้องพักครูจนสาย แล้วค่อยไปเข้าแถว", correct: false },
+                    { text: "ง. วิ่งไปทำทุกอย่างพร้อมกันในเวลาเดียว", correct: false }
+                ],
+                explanation: "สุดยอดนักแก้ปัญหา! การจัดลำดับความสำคัญตามเงื่อนไขเวลา ช่วยให้เราทำภารกิจทุกอย่างสำเร็จได้ทันท่วงทีครับ"
+            }
+        ];
+
+        // Game State Variables
+        let currentStageIndex = 0;
+        let score = 0;
+        let selectedChoice = null;
+        let currentSequence = [];
+
+        // Game Initialization
+        function startGame() {
+            playSound('click');
+            currentStageIndex = 0;
+            score = 0;
+            document.getElementById('scoreDisplay').innerText = score;
+
+            document.getElementById('startScreen').classList.add('hidden');
+            document.getElementById('victoryScreen').classList.add('hidden');
+            document.getElementById('mainHeader').classList.remove('hidden');
+            document.getElementById('gameplayScreen').classList.remove('hidden');
+
+            loadStage(currentStageIndex);
+        }
+
+        // Load Specific Stage
+        function loadStage(index) {
+            const stage = GAME_STAGES[index];
+            selectedChoice = null;
+
+            // UI Header Update
+            document.getElementById('stageTitle').innerText = `ด่านที่ ${stage.id}/5: ${stage.title}`;
+            document.getElementById('questionTag').innerText = stage.tag;
+            document.getElementById('mascotIcon').innerText = stage.mascot;
+            document.getElementById('scenarioTitle').innerText = stage.title;
+            document.getElementById('scenarioDesc').innerText = stage.desc;
+
+            // Progress Bar
+            const percent = ((index + 1) / GAME_STAGES.length) * 100;
+            document.getElementById('progressBar').style.width = `${percent}%`;
+
+            // Interactive Area Rendering
+            const container = document.getElementById('interactiveArea');
+            container.innerHTML = '';
+
+            if (stage.type === 'choice') {
+                stage.options.forEach((opt, idx) => {
+                    const btn = document.createElement('button');
+                    btn.className = "choice-btn w-full text-left bg-white hover:bg-sky-50 p-3.5 sm:p-4 rounded-2xl border-2 border-sky-200 font-bold text-xs sm:text-sm text-slate-700 transition-all flex items-center justify-between";
+                    btn.onclick = () => selectChoice(idx, btn);
+                    btn.innerHTML = `<span>${opt.text}</span> <span class="check-icon text-lg opacity-0">✅</span>`;
+                    container.appendChild(btn);
+                });
+            } else if (stage.type === 'sequence') {
+                currentSequence = [...stage.initialOrder];
+                renderSequenceList();
+            }
+        }
+
+        // Choice Selection Handler
+        function selectChoice(index, btnEl) {
+            playSound('click');
+            selectedChoice = index;
+
+            document.querySelectorAll('.choice-btn').forEach(b => {
+                b.classList.remove('border-sky-500', 'bg-sky-100', 'ring-2', 'ring-sky-300');
+                b.querySelector('.check-icon').classList.add('opacity-0');
+            });
+
+            btnEl.classList.add('border-sky-500', 'bg-sky-100', 'ring-2', 'ring-sky-300');
+            btnEl.querySelector('.check-icon').classList.remove('opacity-0');
+        }
+
+        // Render Sequence Items for Interactive Ordering
+        function renderSequenceList() {
+            const container = document.getElementById('interactiveArea');
+            container.innerHTML = `<p class="text-xs text-sky-700 font-bold mb-1">💡 แตะที่ข้อความเพื่อสลับตำแหน่งให้เรียงถูกต้อง:</p>`;
+
+            currentSequence.forEach((itemText, idx) => {
+                const item = document.createElement('div');
+                item.className = "step-item bg-white hover:bg-amber-50 p-3 rounded-2xl border-2 border-amber-300 font-bold text-xs sm:text-sm text-slate-800 flex justify-between items-center shadow-sm cursor-pointer";
+                item.onclick = () => moveSequenceItem(idx);
+                item.innerHTML = `
+                    <span>${itemText}</span>
+                    <span class="text-xs bg-amber-200 text-amber-800 px-2 py-1 rounded-lg">สลับ 🔄</span>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function moveSequenceItem(index) {
+            playSound('click');
+            if (index < currentSequence.length - 1) {
+                // Swap with next
+                [currentSequence[index], currentSequence[index + 1]] = [currentSequence[index + 1], currentSequence[index]];
+            } else {
+                // Move last to top
+                const last = currentSequence.pop();
+                currentSequence.unshift(last);
+            }
+            renderSequenceList();
+        }
+
+        // Answer Checking Logic
+        function checkAnswer() {
+            const stage = GAME_STAGES[currentStageIndex];
+            let isCorrect = false;
+
+            if (stage.type === 'choice') {
+                if (selectedChoice === null) {
+                    showCustomAlert("กรุณาเลือกคำตอบก่อนนะครับเด็กๆ 🌟");
+                    return;
+                }
+                isCorrect = stage.options[selectedChoice].correct;
+            } else if (stage.type === 'sequence') {
+                isCorrect = JSON.stringify(currentSequence) === JSON.stringify(stage.correctOrder);
+            }
+
+            if (isCorrect) {
+                playSound('correct');
+                score += 20;
+                document.getElementById('scoreDisplay').innerText = score;
+                showFeedback(true, stage.explanation);
+            } else {
+                playSound('wrong');
+                showFeedback(false, "ยังไม่ถูกต้องครับ ลองคิดทบทวนอีกครั้งหรือกดปุ่มคำใบ้ดูนะครับ!");
+            }
+        }
+
+        // Feedback Modal Controls
+        function showFeedback(isCorrect, text) {
+            const modal = document.getElementById('feedbackModal');
+            const icon = document.getElementById('feedbackIcon');
+            const title = document.getElementById('feedbackTitle');
+            const desc = document.getElementById('feedbackText');
+            const nextBtn = document.getElementById('nextStageBtn');
+
+            if (isCorrect) {
+                icon.innerText = "🎉";
+                title.innerText = "เก่งมาก! ตอบถูกต้อง";
+                title.className = "text-xl font-extrabold text-emerald-600 mb-2";
+                desc.innerText = text;
+                nextBtn.innerText = currentStageIndex < GAME_STAGES.length - 1 ? "ไปด่านถัดไป ➡️" : "ดูสรุปผลคะแนน 🏆";
+                nextBtn.onclick = () => { closeFeedbackModal(); nextStage(); };
+            } else {
+                icon.innerText = "💡";
+                title.innerText = "ลองใหม่อีกนิดนะ!";
+                title.className = "text-xl font-extrabold text-amber-600 mb-2";
+                desc.innerText = text;
+                nextBtn.innerText = "พยายามอีกครั้ง 🔄";
+                nextBtn.onclick = () => { closeFeedbackModal(); };
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeFeedbackModal() {
+            document.getElementById('feedbackModal').classList.add('hidden');
+        }
+
+        function nextStage() {
+            currentStageIndex++;
+            if (currentStageIndex < GAME_STAGES.length) {
+                loadStage(currentStageIndex);
+            } else {
+                showVictoryScreen();
+            }
+        }
+
+        // Show Hint
+        function showHint() {
+            playSound('click');
+            const stage = GAME_STAGES[currentStageIndex];
+            showCustomAlert(`💡 คำใบ้: ${stage.hint}`);
+        }
+
+        // Victory Screen & Stars Calculation
+        function showVictoryScreen() {
+            playSound('victory');
+            triggerConfetti();
+
+            document.getElementById('gameplayScreen').classList.add('hidden');
+            document.getElementById('victoryScreen').classList.remove('hidden');
+
+            document.getElementById('finalScore').innerText = `${score} / 100 คะแนน`;
+
+            let stars = "⭐⭐⭐";
+            if (score < 60) stars = "⭐";
+            else if (score < 100) stars = "⭐⭐";
+
+            document.getElementById('finalStars').innerText = stars;
+        }
+
+        // Modals & Helper UI
+        function showHowToPlayModal() {
+            playSound('click');
+            document.getElementById('howToPlayModal').classList.remove('hidden');
+        }
+
+        function closeHowToPlayModal() {
+            playSound('click');
+            document.getElementById('howToPlayModal').classList.add('hidden');
+        }
+
+        function showCustomAlert(message) {
+            alert(message);
+        }
+
+        // Confetti Effect
+        function triggerConfetti() {
+            const canvas = document.getElementById('confettiCanvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const particles = [];
+            const colors = ['#f59e0b', '#10b981', '#38bdf8', '#ec4899', '#8b5cf6'];
+
+            for (let i = 0; i < 90; i++) {
+                particles.push({
+                    x: canvas.width / 2,
+                    y: canvas.height / 2,
+                    vx: (Math.random() - 0.5) * 14,
+                    vy: (Math.random() - 0.7) * 14,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    size: Math.random() * 8 + 4,
+                    rotation: Math.random() * 360,
+                    rotSpeed: (Math.random() - 0.5) * 8
+                });
+            }
+
+            let animationFrame;
+            const startTime = Date.now();
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                particles.forEach(p => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vy += 0.22;
+                    p.rotation += p.rotSpeed;
+
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate((p.rotation * Math.PI) / 180);
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+                    ctx.restore();
+                });
+
+                if (Date.now() - startTime < 2500) {
+                    animationFrame = requestAnimationFrame(animate);
+                } else {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    cancelAnimationFrame(animationFrame);
+                }
+            }
+
+            animate();
+        }
+    </script>
+</body>
+</html>
